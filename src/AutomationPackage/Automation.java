@@ -2,6 +2,10 @@ package AutomationPackage;
 
 import java.util.*;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 
 import org.openqa.selenium.*;
@@ -31,6 +35,7 @@ public class Automation {
 	static String showTitle;
 	static ArrayList<String> urlList;
 	static String lastUrl;
+	static String destPath;
 	
     public static void main(String[] args) 
     	throws InterruptedException {
@@ -39,13 +44,14 @@ public class Automation {
     	String endUrl;
 
     	baseUrl = "http://full-stream.me/";
-    	endUrl = "/11521-the-blacklist-saison-3.html";
+    	endUrl = "11346-limitless-saison-1.html";
     	
-    	showTitle = "The_Blacklist-s03";
-    	numberOfEpisode = 4;
+    	showTitle = "Limitless-s01";
+    	numberOfEpisode = 6;
     	urlList = new ArrayList<String>();
     	lastUrl = "";
     	currentEpisode = 1;
+    	destPath = "C:/Users/Mathilde/Dev/streamingDL/";
 
     	    	
     	BrowserMobProxy proxy = new BrowserMobProxyServer();
@@ -64,8 +70,10 @@ public class Automation {
                 if (messageInfo.getOriginalUrl().contains(".mp4")) {
                 	System.out.println("URL trouvée : " + messageInfo.getOriginalUrl());
                 	if (!messageInfo.getOriginalUrl().equals(lastUrl)) {
-                		urlList.add(showTitle + "-e" + currentEpisode.toString() + " : " + messageInfo.getOriginalUrl());
-                		lastUrl = messageInfo.getOriginalUrl();
+                		if(messageInfo.getOriginalUrl().contains("youwatch")) {
+                			urlList.add(showTitle + "-e" + currentEpisode.toString() + "|" + messageInfo.getOriginalUrl());
+                    		lastUrl = messageInfo.getOriginalUrl();	
+                		}
                 	}
                 }
                 return null;
@@ -220,6 +228,8 @@ public class Automation {
     public static void analysis() {
     	
     	String strFilePath = "tt.log";
+    	String fileName, url, tmp;
+    	int separatorPosition;
     	try {
     		FileOutputStream fos = new FileOutputStream(strFilePath);
         	har.writeTo(fos);	
@@ -228,7 +238,14 @@ public class Automation {
     	}
     	Iterator<String> urlIterator = urlList.iterator();
     	while(urlIterator.hasNext()) {
-    		System.out.println(urlIterator.next());
+    		tmp = urlIterator.next();
+    		System.out.println(tmp);
+    		separatorPosition = tmp.lastIndexOf('|');
+    		fileName = tmp.substring(0, separatorPosition) + ".mp4";
+    		url = tmp.substring(separatorPosition + 1);
+    		System.out.println("Nom du fichier : " + fileName);
+    		System.out.println("URL : " + url);
+    		saveFile(url, fileName, destPath);
     	}
     	
     }
@@ -244,5 +261,50 @@ public class Automation {
         
     }
     
-    
+    public static void saveFile(String remoteURL, String fileName, String filePath) {
+    	
+    	InputStream input = null;
+    	FileOutputStream writeFile = null;
+    	Integer fileLength = 0;
+    	
+    	System.out.println("Début de l'enregistrement du fichier");
+    	
+    	try {
+    		URL url = new URL(remoteURL);
+    		URLConnection connection = url.openConnection();
+    		fileLength = connection.getContentLength();
+    		
+    		if (fileLength.equals(-1)) {
+    			System.out.println("Erreur dans l'URL : " + remoteURL);
+    			return;
+    		}
+    		
+    		input = connection.getInputStream();
+    		writeFile = new FileOutputStream(filePath + fileName);
+    		byte[] buffer = new byte[1024];
+    		int read;
+    		
+    		while ((read = input.read(buffer))> 0) {
+    			writeFile.write(buffer, 0, read);
+    			writeFile.flush();
+    		}
+    		System.out.println("Fin du téléchargement du fichier : " + filePath + fileName);
+    	} catch (IOException e) {
+            System.out.println("Error while trying to download the file.");
+            e.printStackTrace();
+    	} finally {
+            try
+            {
+                writeFile.close();
+                input.close();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+    	}
+    	
+    	System.out.println("Fin de l'enregistrement du fichier");
+    	
+    }
 }
