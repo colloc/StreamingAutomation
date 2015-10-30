@@ -4,6 +4,8 @@ import java.util.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileWriter;
+import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -30,8 +32,9 @@ public class Automation {
 	static WebDriver driver;
 	static String parentWindowHandler;
 	static Har har;
-	static Integer numberOfEpisode;
+	static Integer lastEpisode;
 	static Integer currentEpisode;
+	static Integer startingEpisode;
 	static String showTitle;
 	static ArrayList<String> urlList;
 	static String lastUrl;
@@ -47,10 +50,11 @@ public class Automation {
     	endUrl = "11346-limitless-saison-1.html";
     	
     	showTitle = "Limitless-s01";
-    	numberOfEpisode = 6;
+    	lastEpisode = 3;
     	urlList = new ArrayList<String>();
     	lastUrl = "";
-    	currentEpisode = 1;
+    	startingEpisode = 1;
+    	currentEpisode = startingEpisode;
     	destPath = "C:/Users/Mathilde/Dev/streamingDL/";
 
     	    	
@@ -71,15 +75,16 @@ public class Automation {
                 	System.out.println("URL trouvée : " + messageInfo.getOriginalUrl());
                 	if (!messageInfo.getOriginalUrl().equals(lastUrl)) {
                 		if(messageInfo.getOriginalUrl().contains("youwatch")) {
-                			urlList.add(showTitle + "-e" + currentEpisode.toString() + "|" + messageInfo.getOriginalUrl());
-                    		lastUrl = messageInfo.getOriginalUrl();	
+                			String tmp = showTitle + "-e" + formatNumber(currentEpisode) + "|" + messageInfo.getOriginalUrl();
+                			urlList.add(tmp);
+                    		lastUrl = messageInfo.getOriginalUrl();
+                    		System.out.println("Ajout à la liste : " + tmp + " - nombre d'éléments dans la liste : " + urlList.size());
                 		}
                 	}
                 }
                 return null;
             }
         });
-    	
     	
     	
         //Create a new instance of Firefox Browser
@@ -93,7 +98,7 @@ public class Automation {
 
         parentWindowHandler = driver.getWindowHandle();
         
-        for (currentEpisode = 1; currentEpisode <= numberOfEpisode; currentEpisode++) {
+        for (currentEpisode = startingEpisode; currentEpisode <= lastEpisode; currentEpisode++) {
         	driver.get(baseUrl + endUrl);
         	
         	fuckButton();
@@ -229,6 +234,13 @@ public class Automation {
     	
     	String strFilePath = "tt.log";
     	String fileName, url, tmp;
+    	
+    	String outputFilename;
+    	File outFile;
+    	FileWriter outFileWriter;
+    	
+    	outputFilename = "c:/Users/Mathilde/Dev/streamingDL/liste_URL-" + showTitle + ".txt";
+    	
     	int separatorPosition;
     	try {
     		FileOutputStream fos = new FileOutputStream(strFilePath);
@@ -236,17 +248,39 @@ public class Automation {
     	} catch (Exception e) {
     		System.out.println("Erreur dans le log : " + e.getStackTrace());
     	}
-    	Iterator<String> urlIterator = urlList.iterator();
-    	while(urlIterator.hasNext()) {
-    		tmp = urlIterator.next();
-    		System.out.println(tmp);
-    		separatorPosition = tmp.lastIndexOf('|');
-    		fileName = tmp.substring(0, separatorPosition) + ".mp4";
-    		url = tmp.substring(separatorPosition + 1);
-    		System.out.println("Nom du fichier : " + fileName);
-    		System.out.println("URL : " + url);
-    		saveFile(url, fileName, destPath);
-    	}
+    	
+    	
+    	try {
+    		outFile = new File(outputFilename);
+    		if(outFile.exists()) {
+    			outFile.delete();
+    		}
+    		outFile.createNewFile();
+    		outFileWriter = new FileWriter(outFile);
+    		
+    		Iterator<String> urlIterator = urlList.iterator();
+        	
+    		while(urlIterator.hasNext()) {
+        		tmp = urlIterator.next();
+        		System.out.println("Ligne analysée : " + tmp);
+        		separatorPosition = tmp.lastIndexOf('|');
+        		fileName = tmp.substring(0, separatorPosition) + ".mp4";
+        		url = tmp.substring(separatorPosition + 1);
+        		System.out.println("Nom du fichier : " + fileName);
+        		System.out.println("URL : " + url);
+        		//saveFile(url, fileName, destPath);
+        		
+        		outFileWriter.write(tmp);
+        		outFileWriter.write(System.getProperty("line.separator"));
+        		outFileWriter.flush();
+        		
+        	}
+    		
+    		outFileWriter.close();
+    		
+    	} catch (Exception e) {
+    		System.out.println("Erreur dans l'écriture du fichier : " + e.getStackTrace());
+    	} 
     	
     }
     
@@ -307,4 +341,19 @@ public class Automation {
     	System.out.println("Fin de l'enregistrement du fichier");
     	
     }
+    
+    public static String formatNumber(Integer number) {
+    	String res;
+    	Integer len;
+    	
+    	res = number.toString();
+    	len = new Integer(res.length());
+
+    	if (len.equals(1)) {
+    		res = "0" + res;
+    	}
+    	
+    	return res;
+    }
+    
 }
