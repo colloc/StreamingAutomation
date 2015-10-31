@@ -47,10 +47,10 @@ public class Automation {
     	String endUrl;
 
     	baseUrl = "http://full-stream.me/";
-    	endUrl = "11346-limitless-saison-1.html";
+    	endUrl = "6981-ray-donovan-saison-2.html";
     	
-    	showTitle = "Limitless-s01";
-    	lastEpisode = 3;
+    	showTitle = "Ray_Donovan-s02";
+    	lastEpisode = 12;
     	urlList = new ArrayList<String>();
     	lastUrl = "";
     	startingEpisode = 1;
@@ -75,7 +75,7 @@ public class Automation {
                 	System.out.println("URL trouvée : " + messageInfo.getOriginalUrl());
                 	if (!messageInfo.getOriginalUrl().equals(lastUrl)) {
                 		if(messageInfo.getOriginalUrl().contains("youwatch")) {
-                			String tmp = showTitle + "-e" + formatNumber(currentEpisode) + "|" + messageInfo.getOriginalUrl();
+                			String tmp = showTitle + "-e" + formatNumber(currentEpisode) + ".mp4|" + messageInfo.getOriginalUrl();
                 			urlList.add(tmp);
                     		lastUrl = messageInfo.getOriginalUrl();
                     		System.out.println("Ajout à la liste : " + tmp + " - nombre d'éléments dans la liste : " + urlList.size());
@@ -267,7 +267,7 @@ public class Automation {
         		tmp = urlIterator.next();
         		System.out.println("Ligne analysée : " + tmp);
         		separatorPosition = tmp.lastIndexOf('|');
-        		fileName = tmp.substring(0, separatorPosition) + ".mp4";
+        		fileName = tmp.substring(0, separatorPosition);
         		url = tmp.substring(separatorPosition + 1);
         		System.out.println("Nom du fichier : " + fileName);
         		System.out.println("URL : " + url);
