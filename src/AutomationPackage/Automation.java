@@ -114,10 +114,13 @@ public class Automation {
         
         har = proxy.getHar();
     	
-        analysis();
+        
         //Close the browser
         driver.close();
         driver.quit();
+        
+        analysis();
+        
         proxy.stop();
         
         System.out.println("Fin !");
@@ -239,7 +242,7 @@ public class Automation {
     	File outFile;
     	FileWriter outFileWriter;
     	
-    	outputFilename = "c:/Users/Mathilde/Dev/streamingDL/liste_URL-" + showTitle + ".txt";
+    	outputFilename = "d:/streaming/liste_URL-" + showTitle + ".txt";
     	
     	int separatorPosition;
     	try {
