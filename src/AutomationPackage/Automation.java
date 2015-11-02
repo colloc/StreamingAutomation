@@ -47,13 +47,13 @@ public class Automation {
     	String endUrl;
 
     	baseUrl = "http://full-stream.me/";
-    	endUrl = "6981-ray-donovan-saison-2.html";
+    	endUrl = "7346-brooklyn-nine-nine-saison-2.html";
+    	showTitle = "Brooklyn_Nine_Nine-s02";
+    	startingEpisode = 3;
+    	lastEpisode = 16;
     	
-    	showTitle = "Ray_Donovan-s02";
-    	lastEpisode = 12;
     	urlList = new ArrayList<String>();
     	lastUrl = "";
-    	startingEpisode = 1;
     	currentEpisode = startingEpisode;
     	destPath = "C:/Users/Mathilde/Dev/streamingDL/";
 

@@ -1,5 +1,5 @@
 #$filename = "C:\Users\Mathilde\Dev\streamingDL\liste_URL-Limitless-s01.txt"
-$filename = "D:\streaming\liste_URL-White_Collar-s06.txt"
+$filename = "D:\streaming\liste_URL-Brooklyn_Nine_Nine-s02.txt"
 
 Get-Content $filename | ForEach-Object {
   $dest, $src = $_.split('|', 2)
