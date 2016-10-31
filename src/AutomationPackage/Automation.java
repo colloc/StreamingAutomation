@@ -27,6 +27,16 @@ import net.lightbody.bmp.util.*;
 import io.netty.handler.codec.http.*;
 
 
+import org.jsoup.*;  
+import org.jsoup.nodes.*;  
+import org.jsoup.select.*;
+
+/*
+import com.jaunt.*;
+import com.jaunt.component.*;
+*/
+
+
 public class Automation {
 
 	static WebDriver driver;
@@ -39,25 +49,34 @@ public class Automation {
 	static ArrayList<String> urlList;
 	static String lastUrl;
 	static String destPath;
+	static String site;
 	
     public static void main(String[] args) 
     	throws InterruptedException {
     		
     	String baseUrl;
     	String endUrl;
+    	String midUrl;	// utile si on se sert de DPSTREAM
 
-    	baseUrl = "http://full-stream.me/";
-    	endUrl = "11346-limitless-saison-1.html";
+    	baseUrl = "http://www.dpstream.net/";
+    	midUrl = "serie-5963-flash-2014/saison-2/";
+    	endUrl = "serie-5963-flash-2014/saison-2/episode-1.html";
+    	// 6430-mozart-in-the-jungle-saison-1.html
+    	// 12149-mozart-in-the-jungle-saison-2.html
     	
-    	showTitle = "Limitless-s01";
-    	lastEpisode = 3;
+    	// Variables à initialiser en fonction du show que l'on veut récupérer
+    	
+    	site = "DPSTREAM"; // Valeurs possibles : DPSTREAM - FULLSTREAM
+    	showTitle = "The_Flash_s02";
+    	startingEpisode = 1;
+    	lastEpisode = 1;
+    	
     	urlList = new ArrayList<String>();
     	lastUrl = "";
-    	startingEpisode = 1;
     	currentEpisode = startingEpisode;
     	destPath = "C:/Users/Mathilde/Dev/streamingDL/";
 
-    	    	
+
     	BrowserMobProxy proxy = new BrowserMobProxyServer();
     	proxy.start(0);
     	
@@ -66,19 +85,34 @@ public class Automation {
     	DesiredCapabilities capabilities = new DesiredCapabilities();
     	capabilities.setCapability(CapabilityType.PROXY, seleniumProxy);
     	
+    	// Suite dernières évolutions de Firefox et Selenium 3 - a verifier 
+    	capabilities.setCapability("marionette", true);
+    	
     	proxy.newHar("testFullStream");
     	
+    	// Paramétrage du proxy :
+    	// - on regarde les requetes qui vont récupérer des fichiers ".mp4" (a priori le bon format de video)
+    	// - lorsque c'était utilisé pour 
     	proxy.addRequestFilter(new RequestFilter() {
             @Override
             public HttpResponse filterRequest(HttpRequest request, HttpMessageContents contents, HttpMessageInfo messageInfo) {
                 if (messageInfo.getOriginalUrl().contains(".mp4")) {
                 	System.out.println("URL trouvée : " + messageInfo.getOriginalUrl());
                 	if (!messageInfo.getOriginalUrl().equals(lastUrl)) {
-                		if(messageInfo.getOriginalUrl().contains("youwatch")) {
-                			String tmp = showTitle + "-e" + formatNumber(currentEpisode) + "|" + messageInfo.getOriginalUrl();
-                			urlList.add(tmp);
-                    		lastUrl = messageInfo.getOriginalUrl();
-                    		System.out.println("Ajout à la liste : " + tmp + " - nombre d'éléments dans la liste : " + urlList.size());
+                		if(site.equals("FULLSTREAM")) {
+                			if(messageInfo.getOriginalUrl().contains("youwatch")) {
+                				String tmp = showTitle + "-e" + formatNumber(currentEpisode) + ".mp4|" + messageInfo.getOriginalUrl();
+                				urlList.add(tmp);
+                    			lastUrl = messageInfo.getOriginalUrl();
+                    			System.out.println("Ajout à la liste : " + tmp + " - nombre d'éléments dans la liste : " + urlList.size());
+                			}
+                		}
+                		if(site.equals("DPSTREAM")) {
+            				String tmp = showTitle + "-e" + formatNumber(currentEpisode) + ".mp4|" + messageInfo.getOriginalUrl();
+            				urlList.add(tmp);
+                			lastUrl = messageInfo.getOriginalUrl();
+                			System.out.println("Ajout à la liste : " + tmp + " - nombre d'éléments dans la liste : " + urlList.size());
+                			
                 		}
                 	}
                 }
@@ -88,6 +122,7 @@ public class Automation {
     	
     	
         //Create a new instance of Firefox Browser
+    	System.setProperty("webdriver.gecko.driver","C:/Users/Mathilde/Documents/Dev/Selenium/geckodriver-v0.11.1-win64/geckodriver.exe");
     	driver = new FirefoxDriver(capabilities);
         
         //Open the URL in firefox browser
@@ -97,29 +132,89 @@ public class Automation {
         driver.manage().window().maximize();
 
         parentWindowHandler = driver.getWindowHandle();
+  
         
-        for (currentEpisode = startingEpisode; currentEpisode <= lastEpisode; currentEpisode++) {
-        	driver.get(baseUrl + endUrl);
-        	
-        	fuckButton();
+        // On exécute la manipulation
+        // En fonction du site utilisé
+        
+        if(site.equals("FULLSTREAM")) {
+            for (currentEpisode = startingEpisode; currentEpisode <= lastEpisode; currentEpisode++) {
+            	driver.get(baseUrl + endUrl);
+            	
+            	fuckButton();
 
-            selectEpisode(currentEpisode);
-            
-            fuckButton();
-            
-            startEpisode();
-            
-            startPlaying();        	
+                selectEpisode(currentEpisode);
+                
+                fuckButton();
+                
+                startEpisode();
+                
+                startPlaying();        	
+            }
+        	
         }
-        
+  /**/      
+        if(site.equals("DPSTREAM")) {
+        	
+        	ArrayList<String> urlToOpenList;
+        	
+            for (currentEpisode = startingEpisode; currentEpisode <= lastEpisode; currentEpisode++) {
+            	endUrl = "episode-" + currentEpisode.toString() + ".html";
+            	urlToOpenList = scrapDP(baseUrl + midUrl + endUrl, "exashare", "360", "VOSTFR");
+            	driver.get(urlToOpenList.get(0));
+
+            	// On fait confiance au site et on prend directement la premiere URL qui est dans la liste - a priori pas besoin de la parcourir
+            	
+            	/*
+            		
+            	// On prépare l'URL en fonction du numéro de l'épisode
+            	//midUrl = "serie-5963-flash-2014/saison-2/";
+            	endUrl = "episode-" + currentEpisode.toString() + "1.html";        	
+            	driver.get(baseUrl + midUrl + endUrl);
+            	
+            	
+            	
+            	// On va utiliser jsoup comme API pour faire le scrapping de la page
+                try {
+                	Document doc = Jsoup.connect(baseUrl + midUrl + endUrl).get();
+                	Element table = doc.select("<table class=\"col-md-12 table-bordered table-striped table-condensed cf\">").get(0);
+            	
+                	Element tbody = table.select("tbody").get(0);
+            	
+                	Elements rows = tbody.select("tr");
+            	
+                	for (int i = 1; i < rows.size(); i++) {
+                		Element row = rows.get(i);
+                		Elements cols = row.select("td");
+                		Element colSite = cols.get(1);
+                		System.out.println("Texte de la première colonne : " + colSite.text());
+                		System.out.println("Test sur le contenu : " + colSite.text().contains("exashare") );
+            		
+                	}
+                	
+                } catch (Exception ex) {
+                	System.err.println("erreur dans le scraping du tableau HTML" + ex.getMessage());
+                }
+            	
+//              Element table = userAgent.doc.findFirst("<table class=\"col-md-12 table-bordered table-striped table-condensed cf\">");
+*/
+                	
+            	
+            }
+        }
+
+        /*
         har = proxy.getHar();
     	
-        analysis();
+        
         //Close the browser
         driver.close();
         driver.quit();
-        proxy.stop();
         
+        analysis();
+        
+        proxy.stop();
+        */
         System.out.println("Fin !");
         
     }
@@ -139,10 +234,62 @@ public class Automation {
     	
     	cleanWindows();
     }
+
+    public static ArrayList<String> scrapDP(String urlDP, String videoProvider, String videoQuality, String language) {
+
+    	ArrayList<String> videoURLList = new ArrayList<String>();
+    	
+    	// On va utiliser jsoup comme API pour faire le scrapping de la page
+    	System.out.println("URL à traiter : " + urlDP);
+        try {
+        	Document doc = Jsoup.connect(urlDP).userAgent("Mozilla").get();
+        	System.out.println("10");
+        	Element div = doc.getElementById("listView");
+        	
+        	//Element table = doc.select("<table class=\"col-md-12 table-bordered table-striped table-condensed cf\">").get(0);
+        	Element table = div.child(1);
+        	//System.out.println("19 : " + table.outerHtml());
+        	System.out.println("20");
+        	Element tbody = table.select("tbody").get(0);
+        	System.out.println("30");
+        	Elements rows = tbody.select("tr");
+        	System.out.println("40");
+        	for (int i = 1; i < rows.size(); i++) {
+        		//System.out.println("41");
+        		Element row = rows.get(i);
+        		Elements cols = row.select("td");
+        		
+        		String lineVideoProvider = cols.get(0).text().trim();
+        		String lineLanguage = cols.get(1).text();
+        		String lineVideoQuality = cols.get(2).text();
+        		String lineVideoLink = cols.get(5).child(0).attr("href");
+        		
+        		System.out.println("Ligne : " + i + " | Provider : " + lineVideoProvider + " | Langue : " + lineLanguage + " | Quality : " + lineVideoQuality + " | URL : " + lineVideoLink);
+        		
+        		if(lineVideoProvider.contains(videoProvider)) {
+        			if(lineLanguage.contains(language)) {
+        				if(lineVideoQuality.contains(videoQuality)) {
+        					videoURLList.add(lineVideoLink);
+        				}
+        			}
+        		}
+        		
+        	}
+        	System.out.println("50");
+        } catch (Exception ex) {
+        	System.err.println("erreur dans le scraping du tableau HTML" + ex.getMessage());
+        	ex.printStackTrace();
+        }
+    	
+        return videoURLList;
+        
+    }
     
     public static void selectEpisode(Integer episodeNumber) throws InterruptedException {
     	driver.findElement(By.linkText("Episode " + episodeNumber.toString())).click();
         cleanWindows();
+        
+        System.out.println("On va sélectionner l'épisode : " + episodeNumber);
         
         try {
         	driver.findElement(By.linkText("Player 1 VOSTFR")).click();
@@ -239,7 +386,7 @@ public class Automation {
     	File outFile;
     	FileWriter outFileWriter;
     	
-    	outputFilename = "c:/Users/Mathilde/Dev/streamingDL/liste_URL-" + showTitle + ".txt";
+    	outputFilename = "d:/streaming/liste_URL-" + showTitle + ".txt";
     	
     	int separatorPosition;
     	try {
@@ -264,7 +411,7 @@ public class Automation {
         		tmp = urlIterator.next();
         		System.out.println("Ligne analysée : " + tmp);
         		separatorPosition = tmp.lastIndexOf('|');
-        		fileName = tmp.substring(0, separatorPosition) + ".mp4";
+        		fileName = tmp.substring(0, separatorPosition);
         		url = tmp.substring(separatorPosition + 1);
         		System.out.println("Nom du fichier : " + fileName);
         		System.out.println("URL : " + url);

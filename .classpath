@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/Selenium/Driver/selenium-2.48.2/selenium-java-2.48.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/Selenium/Driver/selenium-2.48.2/selenium-java-2.48.2-srcs.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/Selenium/Driver/selenium-server-standalone-2.48.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/Selenium/browsermob-proxy-2.1.0-beta-3-bin/browsermob-proxy-2.1.0-beta-3/lib/browsermob-dist-2.1.0-beta-3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/JSoup/jsoup-1.10.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/Selenium/Driver/selenium-server-standalone-3.0.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/Selenium/browsermob-proxy-2.1.2-bin/browsermob-proxy-2.1.2/lib/browsermob-dist-2.1.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Mathilde/Documents/Dev/Selenium/Driver/selenium-java-3.0.1/client-combined-3.0.1-nodeps.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
